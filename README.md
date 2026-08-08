@@ -15,7 +15,7 @@ A página envia respostas para um webhook do Make e consulta uma planilha do Goo
 
 ## Publicação
 
-O site é publicado pelo GitHub Pages a partir da raiz da branch `main`.
+O site está disponível em **[https://fcascontabilsp.github.io/censobvrp/](https://fcascontabilsp.github.io/censobvrp/)** e é publicado pelo GitHub Pages a partir da raiz da branch `main`.
 
 ## Observação de segurança
 

@@ -1,7 +1,16 @@
-# Validação local
+# Validação da publicação
 
-A página foi aberta no navegador e **carregou corretamente**, com cabeçalho, tela pública de participação, botão de resposta e barra inferior visíveis.
+A página foi publicada pelo GitHub Pages em **https://fcascontabilsp.github.io/censobvrp/**.
 
-O único erro registrado no console durante o teste via `file://` foi uma falha ao consultar a planilha do Google Sheets. Esse comportamento é compatível com as restrições de requisições externas ao abrir um arquivo diretamente pelo sistema de arquivos. A validação definitiva deve ser feita por HTTP após a publicação no GitHub Pages.
+| Verificação | Resultado |
+|---|---|
+| Resposta HTTP | `200 OK` |
+| Título da página | `Censo Residencial Buona Vita 2026` |
+| Tamanho do HTML entregue | 85.290 bytes |
+| Tela pública | Carregada corretamente |
+| Consulta da planilha | Funcionando; indicadores exibidos |
+| Navegação para o formulário | Funcionando; etapa 1 de 12 aberta |
+| Envio de resposta de teste | Não realizado, para não contaminar os dados reais |
+| HTTPS | Ativo e obrigatório no domínio padrão do GitHub Pages |
 
-O validador HTML não encontrou erros de fechamento de tags, estrutura duplicada ou falhas de interpretação. Os avisos encontrados referem-se ao uso de estilos inline, botões sem `type` explícito e recomendações de acessibilidade, sem impedir o carregamento da página.
+O validador estrutural não identificou erros de fechamento de tags, IDs duplicados ou falhas de interpretação. Os avisos existentes referem-se principalmente a estilos inline, botões sem `type` explícito e recomendações de acessibilidade, sem impedir o funcionamento da página.
