@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Censo Residencial Buona Vita 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --green:#26331F;
+    --green-soft:#3B4A31;
+    --sage:#EEF0E4;
+    --card:#FFFFFF;
+    --gold:#B98A34;
+    --gold-soft:#E9D5A8;
+    --wine:#6E2A38;
+    --ink:#20241B;
+    --muted:#6B7364;
+    --line:#DBDFCF;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--sage);color:var(--ink);font-family:'Manrope',sans-serif;}
+  h1,h2,h3{font-family:'Fraunces',serif;margin:0;}
+  a{color:inherit;}
+  .hidden{display:none !important;}
+
+  /* --- NAV --- */
+  .topbar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:18px 28px;background:var(--green);color:#fff;
+    position:sticky;top:0;z-index:50;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-family:'Fraunces',serif;font-size:1.05rem;font-weight:600;letter-spacing:.02em;}
+  .brand svg{flex-shrink:0;}
+  .nav-link{
+    background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;
+    padding:8px 16px;border-radius:999px;font-size:.82rem;cursor:pointer;
+    font-family:'Manrope',sans-serif;font-weight:600;letter-spacing:.02em;
+  }
+  .nav-link:hover{background:rgba(255,255,255,.12);}
+
+  /* --- VINE DIVIDER --- */
+  .vine{display:flex;justify-content:center;margin:6px 0 0;opacity:.55;}
+
+  /* --- HERO --- */
+  .hero{max-width:760px;margin:0 auto;padding:56px 24px 20px;text-align:center;}
+  .eyebrow{color:var(--gold);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;}
+  .hero h1{font-size:2.4rem;line-height:1.15;margin:14px 0 16px;color:var(--green);}
+  .hero p{color:var(--muted);font-size:1.02rem;line-height:1.6;max-width:560px;margin:0 auto;}
+  .hero .meta{margin-top:22px;display:flex;gap:22px;justify-content:center;flex-wrap:wrap;font-size:.82rem;color:var(--green-soft);}
+  .hero .meta b{color:var(--wine);}
+
+  /* --- FORM --- */
+  .wrap{max-width:680px;margin:0 auto;padding:20px 20px 80px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px 26px;margin-bottom:18px;}
+  .card h2{font-size:1.15rem;color:var(--green);margin-bottom:4px;}
+  .card .sub{color:var(--muted);font-size:.86rem;margin-bottom:18px;}
+  .section-num{display:inline-block;background:var(--gold-soft);color:var(--wine);font-weight:800;font-size:.72rem;padding:3px 9px;border-radius:999px;margin-bottom:8px;letter-spacing:.04em;}
+
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:.86rem;font-weight:700;color:var(--green-soft);margin-bottom:6px;}
+  .field .hint{font-weight:400;color:var(--muted);font-size:.78rem;display:block;margin-top:2px;}
+  select, input[type=text], input[type=number], textarea{
+    width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;
+    font-family:'Manrope',sans-serif;font-size:.92rem;background:#FBFBF7;color:var(--ink);
+  }
+  select:focus, input:focus, textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
+  textarea{min-height:80px;resize:vertical;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:520px){.row2{grid-template-columns:1fr;}}
+
+  .chip-group{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{
+    border:1.5px solid var(--line);background:#FBFBF7;padding:9px 14px;border-radius:999px;
+    font-size:.85rem;cursor:pointer;user-select:none;transition:.15s;
+  }
+  .chip input{display:none;}
+  .chip.active{background:var(--green);color:#fff;border-color:var(--green);}
+
+  .likert{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:6px;}
+  .likert .opt{flex:1;text-align:center;}
+  .likert .opt input{display:none;}
+  .likert .opt .dot{
+    width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line);margin:0 auto 4px;
+    display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:var(--muted);
+    cursor:pointer;background:#FBFBF7;transition:.15s;
+  }
+  .likert .opt.active .dot{background:var(--wine);border-color:var(--wine);color:#fff;}
+  .likert .opt .lab{font-size:.68rem;color:var(--muted);}
+
+  .consent{display:flex;gap:10px;align-items:flex-start;background:var(--sage);padding:14px 16px;border-radius:10px;font-size:.82rem;color:var(--green-soft);}
+  .consent input{margin-top:3px;}
+
+  .submit-btn{
+    width:100%;background:var(--wine);color:#fff;border:none;padding:15px;border-radius:10px;
+    font-size:.98rem;font-weight:700;cursor:pointer;font-family:'Manrope',sans-serif;letter-spacing:.02em;
+  }
+  .submit-btn:hover{background:#5a212c;}
+  .submit-btn:disabled{background:#B9A9A9;cursor:not-allowed;}
+  .err{color:var(--wine);font-size:.78rem;margin-top:4px;display:none;}
+
+  .thankyou{max-width:520px;margin:80px auto;text-align:center;padding:0 20px;}
+  .thankyou h2{color:var(--green);font-size:1.6rem;margin-bottom:10px;}
+  .thankyou p{color:var(--muted);}
+  .thankyou button{margin-top:20px;background:var(--green);color:#fff;border:none;padding:12px 22px;border-radius:9px;cursor:pointer;font-weight:600;}
+
+  /* --- DASHBOARD --- */
+  .dash-wrap{max-width:1180px;margin:0 auto;padding:24px 20px 70px;}
+  .dash-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;margin-bottom:20px;}
+  .dash-head h1{font-size:1.7rem;color:var(--green);}
+  .dash-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .dash-controls select{width:auto;padding:8px 12px;font-size:.82rem;}
+  .btn-sm{background:var(--green);color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;}
+  .btn-sm.outline{background:transparent;color:var(--green);border:1.5px solid var(--green);}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;}
+  .kpi .n{font-family:'Fraunces',serif;font-size:1.7rem;color:var(--wine);font-weight:700;}
+  .kpi .l{font-size:.76rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+  .grid3{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:16px;margin-bottom:16px;}
+  @media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr;}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;}
+  .panel h3{font-size:.95rem;color:var(--green-soft);margin-bottom:10px;}
+  .panel canvas{max-height:260px;}
+
+  .empty{text-align:center;padding:70px 20px;color:var(--muted);}
+  table.suggest{width:100%;border-collapse:collapse;font-size:.85rem;}
+  table.suggest td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top;}
+  table.suggest td.fase{color:var(--gold);font-weight:700;white-space:nowrap;font-size:.75rem;}
+
+  .gate{max-width:360px;margin:100px auto;text-align:center;padding:0 20px;}
+  .gate input{margin:16px 0;}
+  .gate p{color:var(--muted);font-size:.82rem;}
+  body:not(.director-mode) .dir-only{display:none !important;}
+
+  /* --- APP TAB BAR --- */
+  .tabbar{
+    position:fixed;bottom:0;left:0;right:0;z-index:60;
+    display:flex;background:#fff;border-top:1px solid var(--line);
+    padding:6px 10px calc(6px + env(safe-area-inset-bottom));
+    box-shadow:0 -4px 14px rgba(0,0,0,.06);
+  }
+  .tab-btn{
+    flex:1;background:none;border:none;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;
+    color:var(--muted);font-family:'Manrope',sans-serif;font-size:.7rem;font-weight:700;cursor:pointer;border-radius:10px;
+  }
+  .tab-btn.active{color:var(--wine);}
+  .tab-btn .dot{width:22px;height:22px;border-radius:50%;background:var(--sage);display:flex;align-items:center;justify-content:center;font-size:.85rem;}
+  .tab-btn.active .dot{background:var(--wine);color:#fff;}
+  body{padding-bottom:76px;}
+
+  /* --- PUBLIC PROGRESS SCREEN --- */
+  .progress-wrap{max-width:640px;margin:0 auto;padding:32px 20px 40px;}
+  .progress-ring-box{text-align:center;padding:26px 20px;background:var(--card);border:1px solid var(--line);border-radius:18px;margin-bottom:18px;}
+  .progress-ring-box .big{font-family:'Fraunces',serif;font-size:3rem;color:var(--wine);font-weight:700;line-height:1;}
+  .progress-ring-box .lbl{color:var(--muted);font-size:.82rem;margin-top:4px;}
+  .progress-bar-outer{height:14px;border-radius:8px;background:var(--sage);overflow:hidden;margin:16px 0 6px;position:relative;}
+  .progress-bar-inner{height:100%;background:linear-gradient(90deg,var(--wine),var(--gold));border-radius:8px;transition:width .6s ease;}
+  .progress-target-mark{position:absolute;top:0;width:2px;height:100%;background:var(--green);}
+  .progress-sub{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);}
+  .quadra-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:8px;margin:18px 0;}
+  .quadra-cell{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;padding:4px;}
+  .quadra-cell .qletra{font-size:.62rem;font-weight:700;opacity:.85;letter-spacing:.02em;}
+  .quadra-cell .qnum{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;line-height:1.1;}
+  .cta-responder{
+    display:block;width:100%;background:var(--wine);color:#fff;border:none;padding:16px;border-radius:12px;
+    font-size:1rem;font-weight:700;text-align:center;cursor:pointer;margin-top:8px;
+  }
+  .countdown-chip{display:inline-block;background:var(--sage);color:var(--green-soft);font-size:.74rem;font-weight:700;padding:5px 12px;border-radius:999px;margin-top:8px;}
+
+  /* --- WIZARD --- */
+  .wizard-progress{max-width:680px;margin:0 auto;padding:14px 20px 0;}
+  .wizard-bar-outer{height:6px;border-radius:4px;background:var(--sage);overflow:hidden;}
+  .wizard-bar-inner{height:100%;background:var(--wine);border-radius:4px;transition:width .3s ease;}
+  .wizard-step-label{font-size:.72rem;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between;}
+  .wizard-caption{font-size:.86rem;color:var(--green-soft);font-weight:700;margin-top:10px;min-height:1.2em;}
+  .wizard-nav{
+    position:fixed;bottom:76px;left:0;right:0;display:flex;gap:10px;padding:10px 20px;background:linear-gradient(to top, var(--sage) 60%, transparent);
+    max-width:680px;margin:0 auto;
+  }
+  .wizard-nav button{flex:1;padding:14px;border-radius:12px;font-weight:700;font-size:.92rem;border:none;cursor:pointer;font-family:'Manrope',sans-serif;}
+  .wizard-nav .btn-back{background:#fff;color:var(--green);border:1.5px solid var(--line);flex:0 0 90px;}
+  .wizard-nav .btn-next{background:var(--wine);color:#fff;}
+  .card{transition:opacity .2s ease;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2C12 2 6 8 6 13a6 6 0 0012 0c0-5-6-11-6-11z" fill="#B98A34"/></svg>
+    Censo Buona Vita 2026
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="nav-link" id="navProfile" style="border-color:rgba(255,255,255,.2);">Já respondi</button>
+    <button class="nav-link" id="navToggle">Diretoria</button>
+  </div>
+</div>
+
+<!-- ======================= VIEW: PROGRESS (tela pública 1 — só participação, sem opinião) ======================= -->
+<div id="viewProgress">
+  <div class="progress-wrap">
+    <div class="eyebrow" style="text-align:center;">Residencial Buona Vita · Ribeirão Preto</div>
+    <h1 style="font-family:'Fraunces',serif;font-size:1.6rem;text-align:center;color:var(--green);margin:10px 0 4px;">Como está a participação</h1>
+    <p style="text-align:center;color:var(--muted);font-size:.86rem;margin-bottom:18px;">Mostramos aqui só quantas casas já responderam — nenhuma opinião ou nota fica visível antes do censo fechar, para não influenciar quem ainda vai responder.</p>
+
+    <div class="progress-ring-box">
+      <div class="big" id="pubPct">0%</div>
+      <div class="lbl">das casas prontas já responderam</div>
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="pubBar" style="width:0%;"></div><div class="progress-target-mark" id="pubTargetMark"></div></div>
+      <div class="progress-sub"><span id="pubCount">0 de 0</span><span style="color:var(--green);font-weight:700;">meta 80%</span></div>
+      <div class="countdown-chip" id="pubCountdown">calculando prazo...</div>
+    </div>
+
+    <div class="panel" style="background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 8px;">
+      <h3 style="font-size:.85rem;color:var(--green-soft);margin-bottom:10px;">Participação por quadra</h3>
+      <div class="quadra-grid" id="pubQuadraGrid"></div>
+      <div style="font-size:.68rem;color:var(--muted);text-align:center;padding:6px 0 4px;">Cor mais forte = mais respostas na quadra. Sem relação com satisfação ou notas.</div>
+    </div>
+
+    <button class="cta-responder" id="ctaResponder">Ainda não respondi — quero responder agora</button>
+  </div>
+</div>
+
+<!-- ======================= VIEW: FORM (tela pública 2 — coleta em formato wizard) ======================= -->
+<div id="viewForm" class="hidden">
+
+  <div class="hero" style="padding:32px 24px 8px;">
+    <div class="eyebrow">Residencial Buona Vita · Ribeirão Preto</div>
+    <h1 style="font-size:1.9rem;">Sua opinião constrói o Buona Vita que queremos viver</h1>
+    <p>Vai em ~12-15 minutos, passo a passo. Pode voltar e mudar qualquer resposta antes de enviar.</p>
+  </div>
+
+  <div class="wizard-progress">
+    <div class="wizard-bar-outer"><div class="wizard-bar-inner" id="wizardBar" style="width:0%;"></div></div>
+    <div class="wizard-step-label"><span id="wizardStepLabel">Passo 1 de 11</span><span id="wizardPct">0%</span></div>
+    <div class="wizard-caption" id="wizardCaption"></div>
+  </div>
+
+  <form class="wrap" id="censoForm" style="padding-bottom:110px;">
+
+    <div class="card" data-step="1">
+      <span class="section-num">Seção A</span>
+      <h2>Sobre o seu domicílio</h2>
+      <div class="sub">Usamos apenas quadra e lote para localizar sua resposta no mapa do residencial — nenhum outro dado que te identifique é solicitado.</div>
+      <div class="row2">
+        <div class="field">
+          <label>Quadra</label>
+          <select name="quadra" id="quadraSelect" required>
+            <option value="">Selecione</option>
+            <option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option><option>I</option><option>J</option><option>K</option><option>L</option><option>M</option><option>N</option><option>O</option><option>P</option><option>Q</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Lote</label>
+          <input type="number" name="lote" id="loteInput" min="1" max="46" placeholder="nº do lote" required>
+          <span class="hint" id="loteHint">Selecione a quadra para ver a faixa de lotes</span>
+          <div id="dupWarning" class="hidden" style="background:#F7D199;color:#6E2A38;font-size:.76rem;padding:8px 10px;border-radius:8px;margin-top:6px;"></div>
+        </div>
+        <div class="field">
+          <label>Situação do imóvel</label>
+          <select name="situacaoImovel" required>
+            <option value="">Selecione</option>
+            <option>Morador proprietário</option><option>Morador inquilino</option><option>Vago / em fase de mudança</option><option>Em obra / reforma</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tempo de residência</label>
+          <select name="tempoResidencia" required>
+            <option value="">Selecione</option>
+            <option>Menos de 1 ano</option><option>1 a 3 anos</option><option>3 a 5 anos</option><option>5 a 10 anos</option><option>Mais de 10 anos</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-step="2">
+      <span class="section-num">Seção B</span>
+      <h2>Composição familiar</h2>
+      <div class="field"><label>Quantas pessoas moram permanentemente nesta residência?</label><input type="number" name="moradores" min="1" max="20" required></div>
+      <div class="field">
+        <label>Quantos moradores em cada faixa de idade? <span class="hint">(a soma não precisa ser igual ao total acima)</span></label>
+        <div class="row2" style="margin-top:8px;">
+          <div class="field"><label style="font-weight:400;font-size:.78rem;">0 a 11 anos</label><input type="number" name="f0_11" min="0" max="15" value="0"></div>
+          <div class="field"><label style="font-weight:400;font-size:.78rem;">12 a 17 anos</label><input type="number" name="f12_17" min="0" max="15" value="0"></div>
+          <div class="field"><label style="font-weight:400;font-size:.78rem;">18 a 29 anos</label><input type="number" name="f18_29" min="0" max="15" value="0"></div>
+          <div class="field"><label style="font-weight:400;font-size:.78rem;">30 a 59 anos</label><input type="number" name="f30_59" min="0" max="15" value="0"></div>
+          <div class="field"><label style="font-weight:400;font-size:.78rem;">60 anos ou mais</label><input type="number" name="f60mais" min="0" max="15" value="0"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Animais de estimação</label>
+        <div class="chip-group" id="petsGroup">
+          <label class="chip"><input type="checkbox" value="Cão">Cão</label>
+          <label class="chip"><input type="checkbox" value="Gato">Gato</label>
+          <label class="chip"><input type="checkbox" value="Outro">Outro</label>
+          <label class="chip"><input type="checkbox" value="Nenhum">Nenhum</label>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Carros</label><select name="carros"><option value="0">0</option><option>1</option><option>2</option><option>3+</option></select></div>
+        <div class="field"><label>Motos</label><select name="motos"><option value="0">0</option><option>1</option><option>2+</option></select></div>
+        <div class="field"><label>Elétricos / híbridos plug-in</label><select name="eletricos"><option value="0">0</option><option>1</option><option>2+</option></select></div>
+      </div>
+    </div>
+
+    <div class="card" data-step="3">
+      <span class="section-num">Seção C</span>
+      <h2>Rotina e mobilidade</h2>
+      <div class="field"><label>Quantos moradores trabalham/estudam em home office (100% ou híbrido)?</label>
+        <select name="homeOffice" required><option value="">Selecione</option><option>Nenhum</option><option>1 morador</option><option>2 ou mais moradores</option></select>
+      </div>
+      <div class="field">
+        <label>Quais meios de transporte a família usa regularmente?</label>
+        <div class="chip-group" id="transporteGroup">
+          <label class="chip"><input type="checkbox" value="Carro">Carro</label>
+          <label class="chip"><input type="checkbox" value="Moto">Moto</label>
+          <label class="chip"><input type="checkbox" value="Bicicleta">Bicicleta</label>
+          <label class="chip"><input type="checkbox" value="A pé">A pé</label>
+          <label class="chip"><input type="checkbox" value="Aplicativo">Aplicativo (Uber/99)</label>
+          <label class="chip"><input type="checkbox" value="Transporte público">Transporte público</label>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Frequência que alguém caminha/pedala dentro do residencial</label>
+          <select name="freqCaminhada" required><option value="">Selecione</option><option>Diariamente</option><option>Algumas vezes por semana</option><option>Algumas vezes por mês</option><option>Raramente</option><option>Nunca</option></select>
+        </div>
+        <div class="field"><label>Frequência de uso das áreas comuns/lazer</label>
+          <select name="freqAreasComuns" required><option value="">Selecione</option><option>Quase todos os dias</option><option>Algumas vezes por semana</option><option>Algumas vezes por mês</option><option>Raramente</option><option>Nunca</option></select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Quais espaços do residencial sua família mais utiliza?</label>
+        <div class="chip-group" id="areasGroup">
+          <label class="chip"><input type="checkbox" value="Academia">Academia</label>
+          <label class="chip"><input type="checkbox" value="Quadra poliesportiva">Quadra poliesportiva</label>
+          <label class="chip"><input type="checkbox" value="Piscina/Salão de festas">Piscina / Salão de festas</label>
+          <label class="chip"><input type="checkbox" value="Playground">Playground</label>
+          <label class="chip"><input type="checkbox" value="Pista de caminhada">Pista de caminhada</label>
+          <label class="chip"><input type="checkbox" value="Sede/Clube">Sede / Clube</label>
+          <label class="chip"><input type="checkbox" value="Nenhum">Não utilizamos</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-step="4">
+      <span class="section-num">Seção D</span>
+      <h2>Convivência entre moradores</h2>
+      <div class="field"><label>Como você avalia a convivência entre os moradores?</label><div class="likert" data-name="convivencia"></div></div>
+      <div class="row2">
+        <div class="field"><label>Contato com seus vizinhos próximos</label>
+          <select name="contatoVizinhos" required><option value="">Selecione</option><option>Sim, bastante</option><option>Sim, algum contato</option><option>Muito pouco</option><option>Praticamente nenhum</option></select>
+        </div>
+        <div class="field"><label>Gostaria de mais oportunidades de convivência?</label>
+          <select name="desejaConvivencia" required><option value="">Selecione</option><option>Sim</option><option>Talvez</option><option>Não</option><option>Já está adequado</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Hoje, qual é o maior desafio de convivência no residencial?</label>
+        <select name="desafioConvivencia" required><option value="">Selecione</option>
+          <option>Excesso de velocidade de veículos</option><option>Barulho / som alto fora de hora</option><option>Lixo / entulho de obras</option><option>Animais sem coleira / dejetos</option><option>Estacionamento irregular</option><option>Não percebo problemas relevantes</option></select>
+      </div>
+    </div>
+
+    <div class="card" data-step="5">
+      <span class="section-num">Seção E</span>
+      <h2>Como você avalia o Buona Vita hoje</h2>
+      <div class="sub">1 = muito ruim · 5 = muito bom. Estas mesmas perguntas serão repetidas nos próximos censos para acompanhar a evolução.</div>
+      <div id="satisfacaoGrid"></div>
+    </div>
+
+    <div class="card" data-step="6">
+      <span class="section-num">Seção F</span>
+      <h2>O que é mais importante para você</h2>
+      <div class="sub">Dos itens da seção anterior, escolha até <b>5</b> que são mais importantes para você e sua família. Isso nos ajuda a separar o que precisa de atenção urgente do que já está bom.</div>
+      <div class="chip-group" id="importanciaGroup"></div>
+      <div class="hint" id="importanciaHint" style="margin-top:8px;display:block;">0 de 5 selecionados</div>
+    </div>
+
+    <div class="card" data-step="7">
+      <span class="section-num">Seção G</span>
+      <h2>Segurança — onde poderia melhorar</h2>
+      <div class="sub">Opcional. Selecione todos que se aplicam.</div>
+      <div class="chip-group" id="segurancaGroup">
+        <label class="chip"><input type="checkbox" value="Portaria">Portaria</label>
+        <label class="chip"><input type="checkbox" value="Controle de visitantes">Controle de visitantes</label>
+        <label class="chip"><input type="checkbox" value="Prestadores de serviço">Prestadores de serviço</label>
+        <label class="chip"><input type="checkbox" value="Muros/perímetro">Muros / perímetro</label>
+        <label class="chip"><input type="checkbox" value="Câmeras">Monitoramento por câmeras</label>
+        <label class="chip"><input type="checkbox" value="Iluminação">Iluminação</label>
+        <label class="chip"><input type="checkbox" value="Velocidade">Velocidade dos veículos</label>
+        <label class="chip"><input type="checkbox" value="Comunicação de ocorrências">Comunicação de ocorrências</label>
+        <label class="chip"><input type="checkbox" value="Não identifico necessidade">Não identifico necessidade</label>
+      </div>
+    </div>
+
+    <div class="card" data-step="8">
+      <span class="section-num">Seção H</span>
+      <h2>Prioridades para o futuro</h2>
+      <div class="field">
+        <label>Escolha até <b>3</b> investimentos/serviços prioritários para os próximos 2 anos</label>
+        <div class="chip-group" id="novosServicosGroup"></div>
+        <div class="hint" id="novosServicosHint" style="margin-top:6px;display:block;">0 de 3 selecionados</div>
+      </div>
+      <div class="field"><label>Seria a favor de parcerias comerciais com desconto exclusivo para moradores?</label>
+        <select name="parcerias" required><option value="">Selecione</option><option>Sim, acho excelente</option><option>Indiferente</option><option>Não vejo necessidade</option></select>
+      </div>
+      <div class="field">
+        <label>Como você gostaria que o Buona Vita fosse reconhecido? <span class="hint">(escolha até 3)</span></label>
+        <div class="chip-group" id="identidadeGroup"></div>
+      </div>
+    </div>
+
+    <div class="card" data-step="9">
+      <span class="section-num">Seção I</span>
+      <h2>Recomendação</h2>
+      <div class="field">
+        <label>De 0 a 10, o quanto você recomendaria o Buona Vita para um amigo ou familiar morar aqui?</label>
+        <input type="range" id="npsSlider" name="nps" min="0" max="10" value="8" style="width:100%;margin-top:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);"><span>0 · nunca recomendaria</span><span id="npsValue" style="font-weight:700;color:var(--wine);font-size:1rem;">8</span><span>10 · recomendaria com certeza</span></div>
+      </div>
+    </div>
+
+    <div class="card" data-step="10">
+      <span class="section-num">Seção J</span>
+      <h2>A sua voz</h2>
+      <div class="field"><label>O que você mais valoriza no Buona Vita hoje? (opcional)</label>
+        <textarea name="valorizaMais" maxlength="300" placeholder="Escreva livremente..."></textarea>
+      </div>
+      <div class="field"><label>Se pudesse melhorar UMA coisa no Buona Vita, o que seria? (opcional)</label>
+        <textarea name="melhoriaUnica" maxlength="300" placeholder="Escreva livremente..."></textarea>
+      </div>
+    </div>
+
+    <div class="card" data-step="11" style="border:1.5px dashed var(--gold);">
+      <span class="section-num" style="background:var(--gold-soft);">Seção K · opcional</span>
+      <h2>Perfil socioeconômico</h2>
+      <div class="sub">Totalmente opcional — pode pular esta seção sem prejuízo para sua resposta. Ajuda a diretoria a negociar parcerias e atrair prestadores de serviço compatíveis com o perfil do residencial.</div>
+      <div class="row2">
+        <div class="field"><label>Faixa etária do responsável financeiro</label>
+          <select name="respFaixaEtaria"><option value="">Prefiro não responder</option><option>Até 35 anos</option><option>36 a 50 anos</option><option>51 a 65 anos</option><option>Acima de 65 anos</option></select>
+        </div>
+        <div class="field"><label>Escolaridade do responsável</label>
+          <select name="escolaridade"><option value="">Prefiro não responder</option><option>Ensino médio</option><option>Ensino superior</option><option>Pós-graduação/Mestrado/Doutorado</option></select>
+        </div>
+        <div class="field"><label>Renda familiar mensal aproximada</label>
+          <select name="renda"><option value="">Prefiro não responder</option><option>Até R$ 15.000</option><option>R$ 15.001 a R$ 30.000</option><option>R$ 30.001 a R$ 50.000</option><option>Acima de R$ 50.000</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-step="12">
+      <span class="section-num">Último passo</span>
+      <h2>Quase lá! 🌿</h2>
+      <div class="sub">Confira o consentimento abaixo e envie — sua resposta já entra direto na contagem do censo.</div>
+      <label class="consent">
+        <input type="checkbox" id="lgpd" required>
+        <span>Autorizo o uso das minhas respostas, de forma anônima e agregada, para fins de planejamento do residencial, conforme a Lei Geral de Proteção de Dados (LGPD). Nenhuma resposta individual será identificada.</span>
+      </label>
+      <div class="err" id="formErr">Por favor, preencha os campos obrigatórios e aceite o termo de consentimento.</div>
+    </div>
+  </form>
+
+  <div class="wizard-nav hidden" id="wizardNav">
+    <button type="button" class="btn-back" id="wizardBack">Voltar</button>
+    <button type="button" class="btn-next" id="wizardNext">Continuar</button>
+  </div>
+
+  <div class="thankyou hidden" id="thankyou">
+    <h2>Obrigado por participar! 🌿</h2>
+    <p>Sua resposta foi registrada de forma anônima e já entrou na contagem do censo. Compartilhe este link com seus vizinhos — quanto mais respostas, mais confiável fica o diagnóstico.</p>
+    <div style="background:var(--sage);border-radius:10px;padding:14px;margin:16px 0;font-size:.84rem;color:var(--green-soft);">
+      Quer ver o perfil das respostas até agora? Use o botão abaixo, ou entre depois em qualquer momento pelo botão <b>"Já respondi"</b> no topo com o código:
+      <div style="font-family:'Fraunces',serif;font-size:1.3rem;color:var(--wine);font-weight:700;margin-top:6px;">buonavita2026</div>
+    </div>
+    <button onclick="openProfile(false)">Ver perfil das respostas</button>
+    <button onclick="resetForm()" style="background:transparent;color:var(--green);border:1.5px solid var(--line);margin-left:8px;">Responder novamente</button>
+  </div>
+
+</div>
+
+<!-- ======================= TAB BAR (app-style) ======================= -->
+<div class="tabbar" id="tabbar">
+  <button class="tab-btn active" id="tabProgress"><span class="dot">◔</span>Acompanhar</button>
+  <button class="tab-btn" id="tabForm"><span class="dot">✎</span>Responder</button>
+</div>
+
+<!-- ======================= VIEW: GATE (passcode) ======================= -->
+<div id="viewGate" class="gate hidden">
+  <h2 id="gateTitle" style="color:var(--green);font-family:'Fraunces',serif;">Painel da diretoria</h2>
+  <p id="gateSub">Digite o código de acesso combinado com a administração.<br><span style="font-size:.72rem">(proteção simples, não substitui controle de acesso formal)</span></p>
+  <input type="password" id="gateCode" placeholder="Código de acesso" style="text-align:center;">
+  <div><button class="btn-sm" id="gateSubmit" style="margin-top:6px;">Entrar</button></div>
+  <div class="err" id="gateErr" style="display:none;margin-top:10px;">Código incorreto.</div>
+</div>
+
+<!-- ======================= VIEW: DASHBOARD ======================= -->
+<div id="viewDash" class="dash-wrap hidden">
+  <div class="dash-head">
+    <div>
+      <h1 id="dashTitle">Painel do Censo — Buona Vita 2026</h1>
+      <div style="color:var(--muted);font-size:.85rem;" id="lastUpdate"></div>
+    </div>
+    <div class="dash-controls">
+      <select id="quadraFilter" class="dir-only"><option value="">Todas as quadras</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option><option>I</option><option>J</option><option>K</option><option>L</option><option>M</option><option>N</option><option>O</option><option>P</option><option>Q</option></select>
+      <button class="btn-sm outline" id="refreshBtn">Atualizar</button>
+      <button class="btn-sm dir-only" id="exportBtn">Exportar CSV</button>
+      <button class="btn-sm dir-only" id="exportXlsxBtn" style="background:var(--wine);">Relatório Excel completo</button>
+      <button class="btn-sm outline" id="backBtn">Sair</button>
+    </div>
+  </div>
+
+  <div id="dashContent"></div>
+</div>
+
+<script>
+/* ============================= STATE / HELPERS ============================= */
+const STORAGE_PREFIX = 'censo_buonavita_';
+const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/a2yjnu2nhv4iyq627swcs6a5fvt6llqr';
+const GATE_CODE = 'bvrp2026';
+const RESPONDENT_CODE = 'buonavita2026'; // código único, igual para todos os moradores que já responderam
+const TOTAL_LOTES = 395; // total oficial de lotes do loteamento (corrigido)
+
+// Baseline do levantamento físico casa-a-casa de fev/2025 (390 dos 395 lotes oficiais, grid residencial A-Q).
+// Status: P=Casa pronta, V=Lote vago, O=Em obra, R=Reforma, X=Obra parada.
+// Esse baseline É SÓ O PONTO DE PARTIDA. A cada resposta do censo com quadra+lote,
+// aquele lote específico passa a valer como "Casa pronta e habitada" automaticamente —
+// ninguém precisa reabrir a planilha ou refazer o levantamento em campo.
+const STATUS_BASELINE = [["A",1,"P"],["A",2,"P"],["A",3,"P"],["A",4,"P"],["A",5,"P"],["A",6,"P"],["A",7,"P"],["A",8,"P"],["A",9,"V"],["A",10,"V"],["A",11,"P"],["A",12,"P"],["A",13,"P"],["A",14,"V"],["A",15,"P"],["A",16,"P"],["A",17,"P"],["A",18,"P"],["A",19,"P"],["A",20,"P"],["A",21,"P"],["A",22,"P"],["A",23,"P"],["A",24,"O"],["A",25,"P"],["B",1,"V"],["B",2,"P"],["B",3,"P"],["B",4,"P"],["B",5,"P"],["B",6,"P"],["B",7,"P"],["B",8,"P"],["B",9,"P"],["B",10,"P"],["B",11,"P"],["B",12,"P"],["B",13,"P"],["B",14,"P"],["B",15,"P"],["B",16,"P"],["B",17,"P"],["B",18,"P"],["B",19,"P"],["B",20,"P"],["C",1,"V"],["C",2,"V"],["C",3,"O"],["C",4,"P"],["C",5,"O"],["C",6,"P"],["C",7,"V"],["C",8,"P"],["C",9,"P"],["C",10,"O"],["C",11,"P"],["C",12,"O"],["C",13,"R"],["C",14,"P"],["C",15,"O"],["D",1,"P"],["D",2,"P"],["D",3,"V"],["D",4,"P"],["D",5,"P"],["D",6,"X"],["D",7,"V"],["D",8,"V"],["D",9,"P"],["D",10,"O"],["D",11,"P"],["D",12,"V"],["E",1,"P"],["E",2,"P"],["E",3,"P"],["E",4,"P"],["E",5,"V"],["E",6,"V"],["E",7,"P"],["E",8,"O"],["E",9,"V"],["F",1,"P"],["F",2,"P"],["F",3,"V"],["F",4,"V"],["F",5,"P"],["F",6,"P"],["F",7,"P"],["F",8,"P"],["F",9,"P"],["F",10,"P"],["F",11,"P"],["F",12,"P"],["F",13,"O"],["F",14,"P"],["F",15,"P"],["F",16,"P"],["F",17,"P"],["G",1,"O"],["G",2,"P"],["G",3,"P"],["G",4,"P"],["G",5,"P"],["G",6,"P"],["G",7,"P"],["G",8,"P"],["G",9,"P"],["G",10,"O"],["G",11,"P"],["G",12,"V"],["G",13,"P"],["G",14,"P"],["G",15,"O"],["G",16,"P"],["G",17,"P"],["G",18,"P"],["G",19,"P"],["G",20,"P"],["G",21,"P"],["G",22,"P"],["G",23,"V"],["G",24,"P"],["G",25,"P"],["G",26,"P"],["H",1,"P"],["H",2,"P"],["H",3,"P"],["H",4,"P"],["H",5,"P"],["H",6,"V"],["H",7,"V"],["H",8,"P"],["H",9,"P"],["H",10,"P"],["H",11,"P"],["H",12,"V"],["H",13,"P"],["H",14,"P"],["H",15,"P"],["H",16,"P"],["H",17,"V"],["H",18,"P"],["H",19,"P"],["H",20,"P"],["H",21,"P"],["H",22,"V"],["H",23,"P"],["H",24,"V"],["H",25,"P"],["H",26,"P"],["H",27,"P"],["H",28,"V"],["H",29,"V"],["H",30,"P"],["H",31,"P"],["H",32,"V"],["H",33,"P"],["I",1,"P"],["I",2,"P"],["I",3,"P"],["I",4,"P"],["I",5,"P"],["I",6,"P"],["I",7,"P"],["I",8,"P"],["I",9,"P"],["I",10,"P"],["I",11,"P"],["I",12,"P"],["I",13,"P"],["I",14,"P"],["I",15,"P"],["I",16,"P"],["I",17,"P"],["I",18,"P"],["I",19,"P"],["I",20,"P"],["I",21,"V"],["I",22,"O"],["I",23,"P"],["I",24,"O"],["I",25,"V"],["I",26,"V"],["I",27,"P"],["I",28,"P"],["I",29,"P"],["I",30,"P"],["I",31,"O"],["I",32,"P"],["I",33,"P"],["I",34,"P"],["I",35,"P"],["I",36,"P"],["I",37,"P"],["I",38,"P"],["I",39,"P"],["I",40,"P"],["J",1,"V"],["J",2,"V"],["J",3,"V"],["J",4,"O"],["J",5,"P"],["J",6,"P"],["J",7,"V"],["J",8,"P"],["J",9,"P"],["J",10,"P"],["J",11,"P"],["J",12,"P"],["J",13,"V"],["J",14,"P"],["J",15,"P"],["J",16,"P"],["J",17,"P"],["J",18,"P"],["J",19,"V"],["J",20,"P"],["J",21,"V"],["J",22,"P"],["J",23,"P"],["J",24,"P"],["J",25,"P"],["J",26,"P"],["J",27,"V"],["J",28,"P"],["J",29,"P"],["J",30,"P"],["J",31,"P"],["J",32,"P"],["J",33,"P"],["J",34,"P"],["J",35,"P"],["J",36,"P"],["J",37,"P"],["J",38,"P"],["J",39,"P"],["J",40,"P"],["J",41,"P"],["J",42,"P"],["J",43,"P"],["J",44,"R"],["J",45,"P"],["J",46,"P"],["K",1,"P"],["K",2,"P"],["K",3,"P"],["K",4,"P"],["K",5,"P"],["K",6,"P"],["K",7,"P"],["K",8,"V"],["K",9,"P"],["K",10,"P"],["K",11,"V"],["K",12,"P"],["K",13,"O"],["K",14,"O"],["K",15,"P"],["K",16,"P"],["K",17,"P"],["K",18,"P"],["K",19,"O"],["K",20,"O"],["K",21,"P"],["K",22,"P"],["K",23,"P"],["K",24,"P"],["K",25,"P"],["K",26,"P"],["K",27,"P"],["K",28,"P"],["L",1,"P"],["L",2,"P"],["L",3,"P"],["L",4,"P"],["L",5,"P"],["L",6,"P"],["L",7,"P"],["L",8,"P"],["L",9,"P"],["L",10,"P"],["L",11,"P"],["L",12,"P"],["L",13,"P"],["L",14,"V"],["L",15,"V"],["L",16,"P"],["L",17,"P"],["L",18,"P"],["L",19,"P"],["L",20,"P"],["L",21,"V"],["L",22,"P"],["L",23,"P"],["L",24,"P"],["L",25,"R"],["L",26,"P"],["L",27,"P"],["M",1,"P"],["M",2,"P"],["M",3,"P"],["M",4,"P"],["M",5,"P"],["M",6,"P"],["M",7,"P"],["M",8,"V"],["M",9,"V"],["M",10,"P"],["M",11,"P"],["M",12,"P"],["M",13,"P"],["M",14,"V"],["M",15,"X"],["M",16,"P"],["M",17,"P"],["M",18,"P"],["M",19,"P"],["M",20,"P"],["M",21,"V"],["M",22,"P"],["M",23,"P"],["M",24,"P"],["M",25,"P"],["M",26,"P"],["N",1,"P"],["N",2,"P"],["N",3,"P"],["N",4,"P"],["N",5,"P"],["N",6,"P"],["N",7,"P"],["N",8,"P"],["N",9,"P"],["N",10,"P"],["N",11,"P"],["N",12,"P"],["N",13,"P"],["N",14,"V"],["N",15,"P"],["N",16,"P"],["N",17,"P"],["N",18,"O"],["N",19,"V"],["N",20,"V"],["N",21,"V"],["N",22,"P"],["N",23,"O"],["O",2,"P"],["O",3,"P"],["O",4,"V"],["O",5,"P"],["O",6,"P"],["O",7,"P"],["O",8,"P"],["O",9,"P"],["P",1,"P"],["P",2,"P"],["P",3,"V"],["P",4,"O"],["P",5,"P"],["P",6,"P"],["P",7,"P"],["P",8,"P"],["Q",1,"P"],["Q",2,"V"],["Q",3,"P"],["Q",4,"P"],["Q",5,"P"],["Q",6,"P"],["Q",7,"P"],["Q",8,"P"],["Q",9,"V"],["Q",10,"P"],["Q",11,"P"],["Q",12,"P"],["Q",13,"V"],["Q",14,"P"],["Q",15,"P"],["Q",16,"P"],["Q",17,"P"],["Q",18,"P"],["Q",19,"P"],["Q",20,"P"],["Q",21,"P"],["Q",22,"P"],["Q",23,"P"],["Q",24,"V"],["Q",25,"P"],["Q",26,"P"],["Q",27,"V"]];
+
+const CAMPAIGN_START = null; // definir quando a divulgação (WhatsApp/QR/e-mail) realmente começar
+const CAMPAIGN_DEADLINE = null; // meta: 2 semanas a partir do CAMPAIGN_START
+const CAMPAIGN_TARGET_PCT = 80; // meta: 80% de cobertura
+
+// Os 2 lotes que fecham parte da diferença (392 no grid residencial A-Q + estes 2) não são
+// residências, por isso ficam fora do universo do censo — mas entram na contagem oficial de lotes.
+const SPECIAL_LOTS = [
+  { label: 'Sede e Clube (quadra O, posição 1)', tipo: 'Institucional / Lazer' },
+  { label: 'Lote Comercial de esquina (quadra N, posição 24)', tipo: 'Comercial' },
+];
+
+// 3 lotes comerciais externos (quadra R), do outro lado da avenida lateral ao residencial —
+// são PRIVADOS, não pertencem ao residencial e a diretoria não tem gestão sobre eles.
+// Entram na planta oficial da gleba, mas ficam fora de qualquer decisão do residencial.
+const EXTERNAL_LOTS = [
+  { label: 'Quadra R, Lote 1', tipo: 'Comercial externo — privado, fora da gestão do residencial', tamanho: '>5.000 m²' },
+  { label: 'Quadra R, Lote 2', tipo: 'Comercial externo — privado, fora da gestão do residencial', tamanho: '>5.000 m²' },
+  { label: 'Quadra R, Lote 3', tipo: 'Comercial externo — privado, fora da gestão do residencial', tamanho: '>5.000 m²' },
+];
+
+function computeDynamic(){
+  const respondingKeys = new Set();
+  allResponses.forEach(r=>{ if(r.quadra && r.lote) respondingKeys.add(r.quadra+'-'+r.lote); });
+
+  const perQuadra = {};
+  let statusCounts = { P:0, V:0, O:0, R:0, X:0 };
+  let baselineProntas = 0;
+
+  STATUS_BASELINE.forEach(([q,l,s])=>{
+    const key = q+'-'+l;
+    const confirmed = respondingKeys.has(key);
+    const effective = confirmed ? 'P' : s;
+    statusCounts[effective]++;
+    if(s==='P') baselineProntas++;
+    if(!perQuadra[q]) perQuadra[q] = { quadra:q, total:0, P:0, V:0, O:0, R:0, X:0, confirmadas:0 };
+    perQuadra[q].total++;
+    perQuadra[q][effective]++;
+    if(confirmed && s!=='P') perQuadra[q].confirmadas++;
+  });
+
+  // lotes que responderam mas não estavam no baseline (quadra/lote fora do mapeado) somam ao universo mesmo assim
+  const baselineKeys = new Set(STATUS_BASELINE.map(([q,l])=>q+'-'+l));
+  let extraConfirmed = 0;
+  respondingKeys.forEach(k=>{ if(!baselineKeys.has(k)) extraConfirmed++; });
+
+  const universo = statusCounts.P + extraConfirmed;
+  const respondentesUnicos = respondingKeys.size;
+  const pendentes = Math.max(universo - respondentesUnicos, 0);
+  const pct = universo>0 ? Math.min(100, respondentesUnicos/universo*100) : 0;
+
+  return { perQuadra: Object.values(perQuadra).sort((a,b)=>a.quadra.localeCompare(b.quadra)),
+           statusCounts, universo, respondentesUnicos, pendentes, pct, baselineProntas, extraConfirmed,
+           respondingKeys };
+}
+
+let allResponses = [];
+let charts = {};
+
+function $(sel, root=document){return root.querySelector(sel);}
+function $all(sel, root=document){return [...root.querySelectorAll(sel)];}
+
+/* ============================= ASPECTOS (satisfação x importância) ============================= */
+const ASPECTS = [
+  { key:'seguranca',    label:'Segurança e portaria' },
+  { key:'limpeza',      label:'Limpeza e conservação' },
+  { key:'infra',        label:'Infraestrutura (ruas, iluminação, redes)' },
+  { key:'arborizacao',  label:'Arborização e áreas verdes' },
+  { key:'lazer',        label:'Lazer e estrutura esportiva' },
+  { key:'transito',     label:'Trânsito interno' },
+  { key:'comunicacao',  label:'Comunicação e gestão da diretoria' },
+  { key:'convivenciaAsp', label:'Convivência entre moradores' },
+];
+const NOVOS_SERVICOS_OPTS = [
+  'Câmeras com IA / reconhecimento facial','Modernização da academia','Ponto de recarga para veículos elétricos',
+  'Espaço pet dedicado','Feira semanal / mercado interno','Paisagismo / arborização das alamedas',
+  'Redutores de velocidade','Espaço coworking'
+];
+const IDENTIDADE_OPTS = [
+  'Muito seguro','Tranquilo','Familiar','Excelente qualidade de vida','Verde e arborizado',
+  'Ótima estrutura de lazer','Voltado ao esporte','Forte convivência','Bem administrado','Valorizado'
+];
+
+/* ============================= LIKERT BUILD ============================= */
+function buildLikert(container){
+  const name = container.dataset.name;
+  container.innerHTML = [1,2,3,4,5].map(v=>`
+    <label class="opt" data-v="${v}">
+      <input type="radio" name="${name}" value="${v}" ${v===1?'required':''}>
+      <div class="dot">${v}</div>
+    </label>`).join('');
+}
+
+function buildChipGroup(container, options, {max=null, hintEl=null}={}){
+  container.innerHTML = options.map(v=>`<label class="chip"><input type="checkbox" value="${v}">${v}</label>`).join('');
+  if(max){
+    container.dataset.max = max;
+    container.dataset.hint = hintEl || '';
+  }
+}
+
+function initFormWidgets(){
+  // satisfação: uma linha .likert por aspecto, com o rótulo
+  const grid = $('#satisfacaoGrid');
+  grid.innerHTML = ASPECTS.map(a=>`<div class="field"><label>${a.label}</label><div class="likert" data-name="sat_${a.key}"></div></div>`).join('');
+  $all('.likert').forEach(buildLikert);
+
+  // importância reaproveita a mesma lista de aspectos
+  buildChipGroup($('#importanciaGroup'), ASPECTS.map(a=>a.label), {max:5, hintEl:'importanciaHint'});
+  buildChipGroup($('#novosServicosGroup'), NOVOS_SERVICOS_OPTS, {max:3, hintEl:'novosServicosHint'});
+  buildChipGroup($('#identidadeGroup'), IDENTIDADE_OPTS, {max:3});
+}
+initFormWidgets();
+
+$('#quadraSelect').addEventListener('change', (e)=>{
+  const lotesDaQuadra = STATUS_BASELINE.filter(([q])=>q===e.target.value);
+  const hint = $('#loteHint');
+  const input = $('#loteInput');
+  if(lotesDaQuadra.length){
+    const max = Math.max(...lotesDaQuadra.map(([,l])=>l));
+    input.max = max;
+    hint.textContent = `Quadra ${e.target.value} vai de 1 a ${max}`;
+  } else {
+    input.removeAttribute('max');
+    hint.textContent = 'Selecione a quadra para ver a faixa de lotes';
+  }
+  checkDuplicateLot();
+});
+$('#loteInput').addEventListener('input', checkDuplicateLot);
+
+function checkDuplicateLot(){
+  const quadra = $('#quadraSelect').value;
+  const lote = $('#loteInput').value;
+  const warn = $('#dupWarning');
+  if(!quadra || !lote){ warn.classList.add('hidden'); return; }
+  const existentes = allResponses.filter(r=>r.quadra===quadra && String(r.lote)===String(lote));
+  if(existentes.length > 0){
+    warn.classList.remove('hidden');
+    warn.textContent = `⚠ Já recebemos ${existentes.length} resposta(s) da Quadra ${quadra}, Lote ${lote}. O censo é por domicílio — se outra pessoa da casa já respondeu, considere não enviar de novo para não pesar demais a opinião da sua casa no resultado. Se for uma correção ou você tem certeza que quer registrar outra visão, pode continuar.`;
+  } else {
+    warn.classList.add('hidden');
+  }
+}
+
+const npsSlider = document.getElementById('npsSlider');
+if(npsSlider){
+  npsSlider.addEventListener('input', ()=>{ $('#npsValue').textContent = npsSlider.value; });
+}
+
+document.addEventListener('click', (e)=>{
+  const opt = e.target.closest('.likert .opt');
+  if(opt){
+    const group = opt.closest('.likert');
+    $all('.opt', group).forEach(o=>o.classList.remove('active'));
+    opt.classList.add('active');
+    $('input', opt).checked = true;
+  }
+  const chip = e.target.closest('.chip');
+  if(chip){
+    const input = $('input', chip);
+    const group = chip.closest('.chip-group');
+
+    // "Nenhum" exclusivity for pets group
+    if(group && group.id === 'petsGroup'){
+      if(input.value==='Nenhum' && !input.checked){
+        $all('input', group).forEach(i=>{ if(i!==input){i.checked=false; i.closest('.chip').classList.remove('active');} });
+      } else if(input.value!=='Nenhum'){
+        const nenhum = $all('input', group).find(i=>i.value==='Nenhum');
+        if(nenhum && nenhum.checked){ nenhum.checked=false; nenhum.closest('.chip').classList.remove('active'); }
+      }
+    }
+
+    // limite máximo de seleção (importância, novos serviços, identidade)
+    const max = group && group.dataset.max ? parseInt(group.dataset.max) : null;
+    if(max && !input.checked){
+      const checkedCount = $all('input:checked', group).length;
+      if(checkedCount >= max){
+        e.preventDefault();
+        return;
+      }
+    }
+
+    setTimeout(()=>{
+      chip.classList.toggle('active', input.checked);
+      if(max && group.dataset.hint){
+        const n = $all('input:checked', group).length;
+        const hintEl = document.getElementById(group.dataset.hint);
+        if(hintEl) hintEl.textContent = `${n} de ${max} selecionados`;
+      }
+    }, 0);
+  }
+});
+
+/* ============================= FORM SUBMIT ============================= */
+$('#censoForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const form = e.target;
+  const lgpd = $('#lgpd').checked;
+
+  // valida TODAS as etapas (não só o form inteiro de uma vez) — se alguma falhar,
+  // volta exatamente pra ela em vez de travar o envio sem dizer o motivo.
+  for(let i=1; i<=TOTAL_STEPS; i++){
+    if(!validateStep(i)){
+      showStep(i);
+      $('#formErr').textContent = 'Falta preencher algo nesta etapa antes de enviar.';
+      $('#formErr').style.display='block';
+      return;
+    }
+  }
+  if(!lgpd){
+    $('#formErr').textContent = 'Por favor, aceite o termo de consentimento para enviar.';
+    $('#formErr').style.display='block';
+    return;
+  }
+  $('#formErr').style.display='none';
+
+  const fd = new FormData(form);
+  const satisfacao = {};
+  ASPECTS.forEach(a=>{ satisfacao[a.key] = Number(fd.get(`sat_${a.key}`)); });
+
+  const obj = {
+    quadra: fd.get('quadra'),
+    lote: fd.get('lote'),
+    situacaoImovel: fd.get('situacaoImovel'),
+    tempoResidencia: fd.get('tempoResidencia'),
+    moradores: Number(fd.get('moradores')||0),
+    faixas: { f0_11:Number(fd.get('f0_11')||0), f12_17:Number(fd.get('f12_17')||0), f18_29:Number(fd.get('f18_29')||0), f30_59:Number(fd.get('f30_59')||0), f60mais:Number(fd.get('f60mais')||0) },
+    pets: $all('#petsGroup input:checked').map(i=>i.value),
+    carros: fd.get('carros'), motos: fd.get('motos'), eletricos: fd.get('eletricos'),
+    homeOffice: fd.get('homeOffice'),
+    transportes: $all('#transporteGroup input:checked').map(i=>i.value),
+    freqCaminhada: fd.get('freqCaminhada'),
+    freqAreasComuns: fd.get('freqAreasComuns'),
+    areasUsadas: $all('#areasGroup input:checked').map(i=>i.value),
+    convivencia: Number(fd.get('convivencia')),
+    contatoVizinhos: fd.get('contatoVizinhos'),
+    desejaConvivencia: fd.get('desejaConvivencia'),
+    desafioConvivencia: fd.get('desafioConvivencia'),
+    satisfacao: satisfacao,
+    importancia: $all('#importanciaGroup input:checked').map(i=>i.value),
+    segurancaMelhorias: $all('#segurancaGroup input:checked').map(i=>i.value),
+    novosServicos: $all('#novosServicosGroup input:checked').map(i=>i.value),
+    parcerias: fd.get('parcerias'),
+    identidade: $all('#identidadeGroup input:checked').map(i=>i.value),
+    nps: Number(fd.get('nps')||0),
+    valorizaMais: (fd.get('valorizaMais')||'').trim(),
+    melhoriaUnica: (fd.get('melhoriaUnica')||'').trim(),
+    respFaixaEtaria: fd.get('respFaixaEtaria')||'',
+    escolaridade: fd.get('escolaridade')||'',
+    renda: fd.get('renda')||'',
+    ts: Date.now()
+  };
+
+  const submitBtn = $('#wizardNext');
+  submitBtn.disabled = true; submitBtn.textContent = 'Enviando...';
+
+  async function trySave(){
+    const res = await fetch(MAKE_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(obj)
+    });
+    if(!res.ok){ throw new Error('Webhook retornou status ' + res.status); }
+    return res;
+  }
+
+  try{
+    await trySave();
+    $('#censoForm').classList.add('hidden');
+    $('#wizardNav').classList.add('hidden');
+    $('.wizard-progress').classList.add('hidden');
+    $('#thankyou').classList.remove('hidden');
+  }catch(err1){
+    console.error('1ª tentativa falhou:', err1);
+    // retry automático único, com pequena espera (pode ser falha transitória de rede)
+    try{
+      await new Promise(r=>setTimeout(r, 800));
+      await trySave();
+      $('#censoForm').classList.add('hidden');
+      $('#wizardNav').classList.add('hidden');
+      $('.wizard-progress').classList.add('hidden');
+      $('#thankyou').classList.remove('hidden');
+    }catch(err2){
+      console.error('2ª tentativa (retry) também falhou:', err2);
+      $('#formErr').innerHTML = 'Não foi possível enviar agora. Tente novamente em instantes.' +
+        `<div style="font-size:.68rem;color:#8F4250;margin-top:6px;opacity:.85;">Detalhe técnico (pra reportar): ${escapeHtml(err2 && err2.message || String(err2))}</div>`;
+      $('#formErr').style.display='block';
+    }
+  }finally{
+    submitBtn.disabled=false; submitBtn.textContent='Enviar minhas respostas';
+  }
+});
+
+function resetForm(){
+  $('#censoForm').reset();
+  $all('.likert .opt').forEach(o=>o.classList.remove('active'));
+  $all('.chip').forEach(c=>c.classList.remove('active'));
+  $all('.chip-group').forEach(g=>{ if(g.dataset.hint){ const h=document.getElementById(g.dataset.hint); if(h) h.textContent = `0 de ${g.dataset.max} selecionados`; } });
+  if(npsSlider){ npsSlider.value = 8; $('#npsValue').textContent = '8'; }
+  $('#thankyou').classList.add('hidden');
+  $('#censoForm').classList.remove('hidden');
+  $('#wizardNav').classList.remove('hidden');
+  $('.wizard-progress').classList.remove('hidden');
+  showStep(1);
+}
+
+/* ============================= TABS (Acompanhar / Responder) ============================= */
+function showTab(tab){
+  $('#viewProgress').classList.toggle('hidden', tab!=='progress');
+  $('#viewForm').classList.toggle('hidden', tab!=='form');
+  $('#tabProgress').classList.toggle('active', tab==='progress');
+  $('#tabForm').classList.toggle('active', tab==='form');
+  $('#tabbar').classList.remove('hidden');
+  $('#wizardNav').classList.toggle('hidden', tab!=='form');
+  if(tab==='progress') loadPublicProgress();
+  window.scrollTo({top:0});
+}
+$('#tabProgress').addEventListener('click', ()=>showTab('progress'));
+$('#tabForm').addEventListener('click', ()=>showTab('form'));
+$('#ctaResponder').addEventListener('click', ()=>showTab('form'));
+
+/* ============================= NAV / GATE (2 níveis: morador e diretoria) ============================= */
+let gateContext = 'diretoria'; // 'morador' ou 'diretoria'
+
+function openGate(context){
+  gateContext = context;
+  $('#viewProgress').classList.add('hidden');
+  $('#viewForm').classList.add('hidden');
+  $('#tabbar').classList.add('hidden');
+  $('#wizardNav').classList.add('hidden');
+  $('#viewDash').classList.add('hidden');
+  $('#gateCode').value = '';
+  $('#gateErr').style.display = 'none';
+  if(context === 'morador'){
+    $('#gateTitle').textContent = 'Perfil das respostas';
+    $('#gateSub').innerHTML = 'Digite o código que apareceu depois que você respondeu o censo.<br><span style="font-size:.72rem">É o mesmo código para todos os moradores que já responderam.</span>';
+  } else {
+    $('#gateTitle').textContent = 'Painel da diretoria';
+    $('#gateSub').innerHTML = 'Digite o código de acesso combinado com a administração.<br><span style="font-size:.72rem">(proteção simples, não substitui controle de acesso formal)</span>';
+  }
+  $('#viewGate').classList.remove('hidden');
+}
+$('#navToggle').addEventListener('click', ()=> openGate('diretoria'));
+$('#navProfile').addEventListener('click', ()=> openGate('morador'));
+
+$('#backBtn').addEventListener('click', ()=>{
+  $('#viewDash').classList.add('hidden');
+  document.body.classList.remove('director-mode');
+  showTab('progress');
+});
+$('#gateSubmit').addEventListener('click', tryGate);
+$('#gateCode').addEventListener('keydown', (e)=>{ if(e.key==='Enter') tryGate(); });
+
+function tryGate(){
+  const code = $('#gateCode').value;
+  if(gateContext === 'diretoria' && code === GATE_CODE){
+    openProfile(true);
+  } else if(gateContext === 'morador' && (code === GATE_CODE || code === RESPONDENT_CODE)){
+    // código da diretoria também abre o perfil do morador (é um superconjunto de acesso)
+    openProfile(code === GATE_CODE);
+  } else {
+    $('#gateErr').style.display='block';
+  }
+}
+
+function openProfile(directorMode){
+  $('#viewProgress').classList.add('hidden');
+  $('#viewForm').classList.add('hidden');
+  $('#tabbar').classList.add('hidden');
+  $('#wizardNav').classList.add('hidden');
+  document.body.classList.toggle('director-mode', directorMode);
+  $('#dashTitle').textContent = directorMode ? 'Painel da Diretoria — Buona Vita 2026' : 'Perfil das Respostas — Buona Vita 2026';
+  $('#gateErr').style.display='none';
+  $('#viewGate').classList.add('hidden');
+  $('#viewDash').classList.remove('hidden');
+  loadDashboard();
+}
+
+/* ============================= PUBLIC PROGRESS SCREEN (só participação, nunca opinião) ============================= */
+// SPREADSHEET_ID: ID da planilha (da URL de edição, entre /d/ e /edit).
+// Usamos o endpoint gviz/tq em vez do "Publicar na Web" porque este último fica em cache
+// por vários minutos — o gviz/tq consulta a planilha ao vivo. Exige "Qualquer pessoa com
+// o link" como Leitor (Compartilhar → Acesso geral), diferente de "Publicar na Web".
+const SPREADSHEET_ID = '1rG4OgQUKAgfrcPYYQm8y79-FCvMnjuVyitVZSZjIhLM';
+const SHEET_TAB_NAME = 'censo';
+
+function buildLiveSheetUrl(){
+  const base = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv`;
+  const sheetParam = SHEET_TAB_NAME ? `&sheet=${encodeURIComponent(SHEET_TAB_NAME)}` : '';
+  return `${base}${sheetParam}&_=${Date.now()}`; // timestamp quebra qualquer cache de navegador/CDN
+}
+
+let lastFetchError = null;
+
+async function fetchResponsesFromSheet(){
+  lastFetchError = null;
+  if(!SPREADSHEET_ID) return [];
+  try{
+    const res = await fetch(buildLiveSheetUrl(), { cache: 'no-store' });
+    if(!res.ok) throw new Error('Planilha retornou status ' + res.status);
+    const text = await res.text();
+    return parseSheetCSV(text);
+  }catch(err){
+    console.error('Falha ao buscar respostas da planilha:', err);
+    lastFetchError = (err && err.message) || String(err);
+    return [];
+  }
+}
+
+function parseSheetCSV(csvText){
+  const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+  const arrayFields = ['pets','transportes','areasUsadas','importancia','segurancaMelhorias','novosServicos','identidade'];
+  const faixaKeys = ['f0_11','f12_17','f18_29','f30_59','f60mais'];
+  const satKeys = ASPECTS.map(a=>a.key);
+
+  return parsed.data.map(row=>{
+    const o = { ...row };
+    o.faixas = {};
+    faixaKeys.forEach(k=>{ o.faixas[k] = Number(row['faixa_'+k] || 0); delete o['faixa_'+k]; });
+    o.satisfacao = {};
+    satKeys.forEach(k=>{ o.satisfacao[k] = Number(row['sat_'+k] || 0); delete o['sat_'+k]; });
+    arrayFields.forEach(f=>{ o[f] = row[f] ? String(row[f]).split(';').map(s=>s.trim()).filter(Boolean) : []; });
+    o.moradores = Number(row.moradores || 0);
+    o.convivencia = Number(row.convivencia || 0);
+    o.nps = Number(row.nps || 0);
+    o.ts = Number(row.ts || 0);
+    return o;
+  }).filter(o => o.quadra); // ignora linhas vazias/cabeçalho mal formado
+}
+
+async function loadPublicProgress(){
+  allResponses = await fetchResponsesFromSheet();
+  renderPublicProgress();
+}
+
+function renderPublicProgress(){
+  const dyn = computeDynamic();
+  const pct = dyn.pct.toFixed(0);
+  $('#pubPct').textContent = pct + '%';
+  $('#pubBar').style.width = Math.min(100,dyn.pct) + '%';
+  $('#pubTargetMark').style.left = CAMPAIGN_TARGET_PCT + '%';
+  $('#pubCount').textContent = `${dyn.respondentesUnicos} de ${dyn.universo}`;
+
+  const now = new Date();
+  if(CAMPAIGN_DEADLINE){
+    const diasRestantes = Math.ceil((CAMPAIGN_DEADLINE - now)/(1000*60*60*24));
+    $('#pubCountdown').textContent = diasRestantes > 0 ? `⏳ ${diasRestantes} dia(s) para o fim da coleta` : 'Coleta encerrada';
+  } else {
+    $('#pubCountdown').textContent = '📋 Divulgação ainda não iniciada oficialmente';
+  }
+
+  const respPorQuadra = {};
+  dedupeByLot(allResponses).forEach(r=>{ if(r.quadra) respPorQuadra[r.quadra] = (respPorQuadra[r.quadra]||0)+1; });
+  const quadras = 'ABCDEFGHIJKLMNOPQ'.split('');
+  const maxResp = Math.max(1, ...quadras.map(q=>respPorQuadra[q]||0));
+  $('#pubQuadraGrid').innerHTML = quadras.map(q=>{
+    const n = respPorQuadra[q]||0;
+    const intensity = n/maxResp;
+    const bg = n===0 ? '#DBDFCF' : `rgba(110,42,56,${0.25+intensity*0.75})`;
+    return `<div class="quadra-cell" style="background:${bg};color:${n===0?'#6B7364':'#fff'};"><span class="qnum">${n}</span><span class="qletra">${q}</span></div>`;
+  }).join('');
+}
+
+/* ============================= WIZARD ============================= */
+const TOTAL_STEPS = 12;
+let currentStep = 1;
+const WIZARD_CAPTIONS = {
+  1:'Só o essencial pra te localizar no mapa 📍', 2:'Quem mora com você? 👨‍👩‍👧‍👦', 3:'Como é o seu dia a dia 🚗',
+  4:'Vizinhança e convivência 🤝', 5:'Sua nota de hoje sobre o Buona Vita ⭐', 6:'Metade do caminho — o que importa mais pra você 🎯',
+  7:'Segurança é prioridade — nos ajude a focar 🔒', 8:'Pensando no futuro do residencial 🌱', 9:'Só mais uma! De 0 a 10... 📣',
+  10:'Sua voz importa — escreva livremente ✍️', 11:'Opcional — pode pular se quiser 🔓', 12:'Falta só confirmar e enviar 🎉'
+};
+
+function showStep(n){
+  currentStep = n;
+  $all('#censoForm .card').forEach(c=> c.classList.toggle('hidden', parseInt(c.dataset.step)!==n));
+  $('#wizardBar').style.width = (n/TOTAL_STEPS*100) + '%';
+  $('#wizardStepLabel').textContent = `Passo ${n} de ${TOTAL_STEPS}`;
+  $('#wizardPct').textContent = Math.round(n/TOTAL_STEPS*100) + '%';
+  $('#wizardCaption').textContent = WIZARD_CAPTIONS[n] || '';
+  $('#wizardBack').style.visibility = n===1 ? 'hidden' : 'visible';
+  $('#wizardNext').textContent = n===TOTAL_STEPS ? 'Enviar minhas respostas' : 'Continuar';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function validateStep(n){
+  const card = $(`#censoForm .card[data-step="${n}"]`);
+  const requiredFields = $all('input[required], select[required]', card);
+  for(const f of requiredFields){
+    if(f.type==='checkbox' && !f.name){
+      if(!f.checked){ card.scrollIntoView({behavior:'smooth'}); $('#formErr').style.display='block'; return false; }
+    } else if(f.type==='radio' || f.type==='checkbox'){
+      const group = card.querySelectorAll(`input[name="${f.name}"]`);
+      if(![...group].some(g=>g.checked)){ card.scrollIntoView({behavior:'smooth'}); return false; }
+    } else if(!f.value || !f.checkValidity()){
+      f.reportValidity(); return false;
+    }
+  }
+  $('#formErr').style.display='none';
+  return true;
+}
+
+$('#wizardNext').addEventListener('click', ()=>{
+  if(!validateStep(currentStep)) return;
+  if(currentStep < TOTAL_STEPS){
+    showStep(currentStep+1);
+  } else {
+    // NUNCA usar form.requestSubmit() aqui: ele dispara a validação nativa do
+    // navegador sobre TODO o formulário (inclusive etapas escondidas) antes de
+    // disparar o evento — se algo ficar tecnicamente inválido em qualquer etapa
+    // anterior, o envio falha em silêncio, sem disparar nem o evento 'submit'.
+    // Por isso disparamos o evento manualmente e confiamos na nossa própria
+    // validação (validateStep em loop, dentro do handler de submit).
+    $('#censoForm').dispatchEvent(new Event('submit', {cancelable:true, bubbles:true}));
+  }
+});
+$('#wizardBack').addEventListener('click', ()=>{ if(currentStep>1) showStep(currentStep-1); });
+
+showStep(1);
+
+/* ============================= DASHBOARD ============================= */
+$('#refreshBtn').addEventListener('click', loadDashboard);
+$('#quadraFilter').addEventListener('change', renderDashboard);
+$('#exportBtn').addEventListener('click', exportCSV);
+$('#exportXlsxBtn').addEventListener('click', exportXLSXReport);
+
+function exportXLSXReport(){
+  if(allResponses.length===0){ alert('Ainda não há respostas para gerar o relatório.'); return; }
+  const dyn = computeDynamic();
+  const stats = dedupeByLot(allResponses); // 1 resposta por domicílio nas estatísticas de opinião
+  const n = stats.length;
+  const wb = XLSX.utils.book_new();
+
+  // Aba 1: Resumo executivo
+  const resumo = [
+    ['Censo Residencial Buona Vita 2026 — Relatório'],
+    ['Gerado em', new Date().toLocaleString('pt-BR')],
+    [],
+    ['Universo pesquisado (dinâmico)', dyn.universo],
+    ['Respostas recebidas (domicílios únicos)', dyn.respondentesUnicos],
+    ['Total de envios recebidos (bruto, com duplicatas)', allResponses.length],
+    ['Cobertura', (dyn.pct).toFixed(1)+'%'],
+    ['Meta da campanha', CAMPAIGN_TARGET_PCT+'% em 2 semanas'],
+    [],
+    ['Moradores/domicílio (média)', (stats.reduce((s,r)=>s+(r.moradores||0),0)/n).toFixed(1)],
+    ['Convivência média (1-5)', (stats.reduce((s,r)=>s+(r.convivencia||0),0)/n).toFixed(1)],
+    ['NPS (recomendação)', Math.round((stats.filter(r=>r.nps>=9).length/n - stats.filter(r=>r.nps<=6).length/n)*100)],
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resumo), 'Resumo Executivo');
+
+  // Aba 2: Matriz Importância x Desempenho
+  const impCount = countMulti(stats, 'importancia');
+  const matriz = [['Aspecto','Importância (%)','Desempenho médio (1-5)','Quadrante']];
+  ASPECTS.forEach(a=>{
+    const perf = stats.reduce((s,r)=> s + ((r.satisfacao && r.satisfacao[a.key]) || 0), 0) / n;
+    const imp = Math.round(((impCount[a.label]||0)/n)*100);
+    const quad = imp>=40 ? (perf>=3.5 ? 'Preservar' : 'Prioridade') : (perf>=3.5 ? 'Manter' : 'Secundário');
+    matriz.push([a.label, imp, Number(perf.toFixed(2)), quad]);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(matriz), 'Importância x Desempenho');
+
+  // Aba 3: Detalhamento por quadra
+  const respPorQuadra = {};
+  stats.forEach(r=>{ if(r.quadra) respPorQuadra[r.quadra] = (respPorQuadra[r.quadra]||0)+1; });
+  const quadraSheet = [['Quadra','Lotes','Casas prontas (atual)','Em obra','Reforma','Obra parada','Vago','Respostas','Cobertura %']];
+  dyn.perQuadra.forEach(q=>{
+    const resp = respPorQuadra[q.quadra] || 0;
+    const cov = q.P>0 ? Math.round(resp/q.P*100) : 0;
+    quadraSheet.push([q.quadra, q.total, q.P, q.O, q.R, q.X, q.V, resp, cov]);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(quadraSheet), 'Por Quadra');
+
+  // Aba 4: Rankings (serviços, identidade, transporte, áreas)
+  function rankingRows(field){
+    const map = countMulti(stats, field);
+    return Object.entries(map).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k, v, (v/n*100).toFixed(1)+'%']);
+  }
+  const rankSheet = [['Prioridades de investimento/serviço','Respostas','%'], ...rankingRows('novosServicos'), [],
+    ['Identidade desejada','Respostas','%'], ...rankingRows('identidade'), [],
+    ['Meios de transporte usados','Respostas','%'], ...rankingRows('transportes'), [],
+    ['Espaços mais utilizados','Respostas','%'], ...rankingRows('areasUsadas')];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rankSheet), 'Rankings');
+
+  // Aba 5: Respostas brutas — TODOS os envios, sem deduplicar (transparência/auditoria)
+  const arrayFields = ['pets','transportes','areasUsadas','importancia','segurancaMelhorias','novosServicos','identidade'];
+  const flat = allResponses.map(r=>{
+    const o = {...r};
+    if(o.faixas){ Object.entries(o.faixas).forEach(([k,v])=>{ o['faixa_'+k]=v; }); delete o.faixas; }
+    if(o.satisfacao){ Object.entries(o.satisfacao).forEach(([k,v])=>{ o['sat_'+k]=v; }); delete o.satisfacao; }
+    arrayFields.forEach(f=>{ if(Array.isArray(o[f])) o[f] = o[f].join('; '); });
+    return o;
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(flat), 'Respostas Brutas');
+
+  XLSX.writeFile(wb, `relatorio_censo_buona_vita_${Date.now()}.xlsx`);
+}
+
+async function loadDashboard(){
+  const content = $('#dashContent');
+  content.innerHTML = '<div class="empty">Carregando respostas...</div>';
+  if(!SPREADSHEET_ID){
+    content.innerHTML = '<div class="empty">Integração com a planilha ainda não configurada.<br>Assim que o link do CSV publicado for adicionado, o painel passa a mostrar os dados reais.</div>';
+    return;
+  }
+  allResponses = await fetchResponsesFromSheet();
+  renderDashboard();
+}
+
+function dedupeByLot(responses){
+  // Mantém 1 resposta por quadra/lote (a mais recente) para as ESTATÍSTICAS DE OPINIÃO —
+  // evita que um domicílio com vários respondentes pese mais que os demais no resultado.
+  // A cobertura (computeDynamic) já é por lote único; isso alinha os gráficos de opinião ao mesmo princípio.
+  const byLot = new Map();
+  responses.forEach(r=>{
+    if(!r.quadra || !r.lote) return; // sem quadra/lote não dá pra deduplicar, mantém como está
+    const key = r.quadra + '-' + r.lote;
+    const existing = byLot.get(key);
+    if(!existing || (r.ts||0) > (existing.ts||0)) byLot.set(key, r);
+  });
+  const semQuadraLote = responses.filter(r=>!r.quadra || !r.lote);
+  return [...byLot.values(), ...semQuadraLote];
+}
+
+function renderDashboard(){
+  const quadra = $('#quadraFilter').value;
+  const filtradas = quadra ? allResponses.filter(r=>r.quadra===quadra) : allResponses;
+  const data = dedupeByLot(filtradas);
+  const duplicatasRemovidas = filtradas.length - data.length;
+  $('#lastUpdate').textContent = 'Atualizado agora · ' + new Date().toLocaleString('pt-BR') +
+    (duplicatasRemovidas>0 ? ` · ${duplicatasRemovidas} resposta(s) duplicada(s) do mesmo lote consolidada(s) nos gráficos abaixo` : '');
+
+  const content = $('#dashContent');
+
+  const respostasBlock = data.length === 0
+    ? `<div class="empty">Ainda não há respostas registradas para este filtro.<br>Compartilhe o link do formulário com os moradores.
+        ${lastFetchError ? `<div style="margin-top:12px;font-size:.72rem;color:#8F4250;background:#F7D199;display:inline-block;padding:6px 12px;border-radius:8px;">⚠ Erro técnico ao buscar a planilha (pra reportar): ${lastFetchError}</div>` : ''}
+      </div>`
+    : `
+    <div class="kpis" id="kpiRow"></div>
+    <div class="grid2">
+      <div class="panel"><h3>Importância x Desempenho <span style="color:var(--muted);font-size:.7rem;font-weight:400;">(canto inferior direito = prioridade)</span></h3><canvas id="chImportancia"></canvas></div>
+      <div class="panel"><h3>Satisfação média por aspecto (1-5)</h3><canvas id="chSat"></canvas></div>
+    </div>
+    <div class="grid3">
+      <div class="panel"><h3>Faixas etárias (moradores)</h3><canvas id="chAge"></canvas></div>
+      <div class="panel"><h3>Maior desafio de convivência</h3><canvas id="chDesafio"></canvas></div>
+      <div class="panel"><h3>Recomendação (NPS 0-10)</h3><canvas id="chNPS"></canvas></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h3>Prioridades de investimento/serviço</h3><canvas id="chServicos"></canvas></div>
+      <div class="panel"><h3>Identidade desejada para o Buona Vita</h3><canvas id="chIdentidade"></canvas></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h3>Meios de transporte usados</h3><canvas id="chTransp"></canvas></div>
+      <div class="panel"><h3>Espaços mais utilizados</h3><canvas id="chAreas"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>A voz do morador</h3>
+      <table class="suggest" id="suggestTable"></table>
+    </div>`;
+
+  content.innerHTML = `
+    <div class="panel dir-only" id="coveragePanel" style="margin-bottom:16px;"></div>
+    <div class="grid2 dir-only" style="margin-bottom:16px;">
+      <div class="panel"><h3>Status do loteamento (levantamento físico)</h3><canvas id="chStatus"></canvas></div>
+      <div class="panel"><h3>Detalhamento por quadra (levantamento físico)</h3><div style="max-height:260px;overflow-y:auto;"><table class="suggest" id="quadraTable"></table></div></div>
+    </div>
+    ${respostasBlock}
+  `;
+
+  renderCoverage(quadra);
+  renderStatusChart();
+  renderQuadraTable();
+  if(data.length > 0){
+    renderKPIs(data);
+    renderCharts(data);
+    renderSuggestions(data);
+  }
+}
+
+function renderCoverage(quadraFilterValue){
+  const dyn = computeDynamic();
+  const pct = dyn.pct.toFixed(1);
+  const now = new Date();
+  const msPerDay = 1000*60*60*24;
+
+  let prazoTexto, statusPrazo;
+  if(CAMPAIGN_DEADLINE){
+    const diasRestantes = Math.ceil((CAMPAIGN_DEADLINE - now)/msPerDay);
+    prazoTexto = diasRestantes > 0 ? `${diasRestantes} dia(s) restante(s)` : 'prazo encerrado';
+    const noPrazo = dyn.pct >= projecaoEsperada(now);
+    statusPrazo = diasRestantes <= 0
+      ? (dyn.pct >= CAMPAIGN_TARGET_PCT ? '<span style="color:#5CB380;font-weight:700;">✓ meta batida</span>' : '<span style="color:var(--wine);font-weight:700;">✗ meta não atingida</span>')
+      : (noPrazo ? '<span style="color:#5CB380;font-weight:700;">no ritmo certo</span>' : '<span style="color:var(--gold);font-weight:700;">abaixo do ritmo</span>');
+  } else {
+    prazoTexto = 'divulgação ainda não iniciada';
+    statusPrazo = '<span style="color:var(--muted);font-weight:700;">contador começa quando a campanha for ao ar</span>';
+  }
+
+  const filterNote = quadraFilterValue ? `<span style="color:var(--gold);font-weight:700;">Filtro ativo: Quadra ${quadraFilterValue}</span> — os números de cobertura geral abaixo consideram o loteamento inteiro; veja a coluna "Respostas" na tabela por quadra para o número específico dessa quadra.` : '';
+
+  $('#coveragePanel').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+      <h3>Cobertura do Censo — atualizado automaticamente pelas respostas</h3>
+      <span style="background:var(--sage);color:var(--green-soft);font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:999px;">Meta: 80% em 2 semanas · ${prazoTexto} · ${statusPrazo}</span>
+    </div>
+    <div style="display:flex;gap:26px;flex-wrap:wrap;align-items:center;">
+      <div style="flex:1;min-width:220px;">
+        <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:6px;">
+          <span>Domicílios que responderam</span><span>${dyn.respondentesUnicos} de ${dyn.universo}</span>
+        </div>
+        <div style="height:12px;border-radius:6px;background:var(--sage);overflow:hidden;position:relative;">
+          <div style="height:100%;width:${pct}%;background:var(--wine);"></div>
+          <div style="position:absolute;top:0;left:${CAMPAIGN_TARGET_PCT}%;width:2px;height:100%;background:var(--green);"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.76rem;color:var(--muted);margin-top:6px;">
+          <span>0</span><span style="color:var(--green);">meta 80%</span><span>${dyn.universo} casas (universo dinâmico)</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:22px;flex-wrap:wrap;">
+        <div><div style="font-family:'Fraunces',serif;font-size:1.6rem;color:var(--wine);font-weight:700;">${pct}%</div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;">Cobertura atual</div></div>
+        <div><div style="font-family:'Fraunces',serif;font-size:1.6rem;color:var(--green-soft);font-weight:700;">${dyn.pendentes}</div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;">Casas que ainda não responderam</div></div>
+        <div><div style="font-family:'Fraunces',serif;font-size:1.6rem;color:var(--gold);font-weight:700;">${dyn.extraConfirmed}</div><div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;">Confirmadas fora do baseline fev/25</div></div>
+      </div>
+    </div>
+    <div style="font-size:.74rem;color:var(--muted);margin-top:10px;">${filterNote} O universo pesquisado (${dyn.universo}) parte do levantamento de fev/2025 (${dyn.baselineProntas} casas prontas na época), mas <b>cresce sozinho</b>: toda vez que alguém responde a partir de uma quadra/lote que estava como "vago", "em obra" ou "reforma", aquele lote passa a contar automaticamente como casa pronta e habitada — sem precisar refazer o levantamento em campo.</div>
+    <div style="font-size:.74rem;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--line);">
+      <b>Os ${TOTAL_LOTES} lotes oficiais se fecham assim:</b> 390 no grid residencial (quadras A–Q, mapeados acima) + 2 lotes especiais sem morador (${SPECIAL_LOTS.map(s=>`<b>${s.label}</b>`).join(', ')}) + 3 lotes comerciais externos na planta da gleba (<b>${EXTERNAL_LOTS.map(s=>s.label).join(', ')}</b>, ${EXTERNAL_LOTS[0].tamanho} cada). <b>Estes 3 últimos são privados, não pertencem ao residencial e a diretoria não tem gestão sobre eles</b> — aparecem aqui só para o número oficial da gleba bater, não entram em nenhuma decisão ou oportunidade do residencial.
+    </div>
+  `;
+}
+
+function projecaoEsperada(now){
+  const total = CAMPAIGN_DEADLINE - CAMPAIGN_START;
+  const decorrido = now - CAMPAIGN_START;
+  return Math.max(0, Math.min(100, (decorrido/total) * CAMPAIGN_TARGET_PCT));
+}
+
+function renderStatusChart(){
+  const dyn = computeDynamic();
+  destroyIf('chStatus');
+  const ctx = document.getElementById('chStatus');
+  if(!ctx) return;
+  const labels = ['Casa pronta','Lote vago','Em obra','Reforma','Obra parada'];
+  const values = [dyn.statusCounts.P, dyn.statusCounts.V, dyn.statusCounts.O, dyn.statusCounts.R, dyn.statusCounts.X];
+  const totalLotesBaseline = values.reduce((a,b)=>a+b, 0);
+  const colors = ['#7C8B6A','#B98A34','#E8D25A','#D9822B','#8F4250'];
+  charts['chStatus'] = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data: values, backgroundColor: colors }]},
+    options:{ plugins:{ legend:{ position:'bottom', labels:{boxWidth:10, font:{size:10}} },
+      tooltip:{ callbacks:{ label:(c)=> `${c.label}: ${c.raw} lotes (${totalLotesBaseline>0 ? (c.raw/totalLotesBaseline*100).toFixed(1) : 0}%)` } } } }
+  });
+}
+
+function renderQuadraTable(){
+  const dyn = computeDynamic();
+  const respPorQuadra = {};
+  dedupeByLot(allResponses).forEach(r=>{ if(r.quadra) respPorQuadra[r.quadra] = (respPorQuadra[r.quadra]||0)+1; });
+  const tbl = $('#quadraTable');
+  tbl.innerHTML = `<tr style="font-weight:700;color:var(--green-soft);"><td>Quadra</td><td>Lotes</td><td>Prontas (atual)</td><td>Obra</td><td>Reforma</td><td>Parada</td><td>Vago</td><td>Respostas</td></tr>` +
+    dyn.perQuadra.map(q=>{
+      const resp = respPorQuadra[q.quadra] || 0;
+      const covPct = q.P > 0 ? Math.min(100, Math.round(resp/q.P*100)) : 0;
+      const confirmadasTag = q.confirmadas>0 ? ` <span style="color:var(--gold);font-size:.68rem;">(+${q.confirmadas} confirmada${q.confirmadas>1?'s':''})</span>` : '';
+      return `<tr><td class="fase">${q.quadra}</td><td>${q.total}</td><td>${q.P}${confirmadasTag}</td><td>${q.O}</td><td>${q.R}</td><td>${q.X}</td><td>${q.V}</td><td>${resp} <span style="color:var(--muted);font-size:.7rem;">(${covPct}%)</span></td></tr>`;
+    }).join('');
+}
+
+function renderKPIs(data){
+  const n = data.length;
+  const avgMoradores = (data.reduce((s,r)=>s+(r.moradores||0),0)/n).toFixed(1);
+  const withPets = data.filter(r=>r.pets && r.pets.length && !r.pets.includes('Nenhum')).length;
+  const avgConvivencia = (data.reduce((s,r)=>s+(r.convivencia||0),0)/n).toFixed(1);
+  const avgNPS = (data.reduce((s,r)=>s+(r.nps??0),0)/n).toFixed(1);
+  const promotores = data.filter(r=>r.nps>=9).length;
+  const detratores = data.filter(r=>r.nps<=6).length;
+  const npsScore = Math.round((promotores/n - detratores/n)*100);
+
+  $('#kpiRow').innerHTML = `
+    <div class="kpi"><div class="n">${n}</div><div class="l">Respostas coletadas</div></div>
+    <div class="kpi"><div class="n">${avgMoradores}</div><div class="l">Moradores por domicílio</div></div>
+    <div class="kpi"><div class="n">${Math.round(withPets/n*100)}%</div><div class="l">Têm animais de estimação</div></div>
+    <div class="kpi"><div class="n">${avgConvivencia}</div><div class="l">Convivência média (1-5)</div></div>
+    <div class="kpi"><div class="n">${npsScore}</div><div class="l">NPS (recomendação, -100 a 100)</div></div>
+  `;
+}
+
+function countBy(data, field){
+  const map = {};
+  data.forEach(r=>{ const v = r[field]||'Não informado'; map[v]=(map[v]||0)+1; });
+  return map;
+}
+function countMulti(data, field){
+  const map = {};
+  data.forEach(r=>{ (r[field]||[]).forEach(v=>{ map[v]=(map[v]||0)+1; }); });
+  return map;
+}
+function destroyIf(key){ if(charts[key]){ charts[key].destroy(); } }
+
+const PALETTE = ['#26331F','#B98A34','#6E2A38','#7C8B6A','#D9B26A','#8F4250','#4A5D3A','#C9A874'];
+
+function barChart(id, labels, values, horizontal=false){
+  destroyIf(id);
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  charts[id] = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ data: values, backgroundColor: PALETTE, borderRadius:6 }]},
+    options:{
+      indexAxis: horizontal ? 'y' : 'x',
+      plugins:{legend:{display:false}},
+      scales:{ x:{grid:{display:false}}, y:{grid:{display:false}} }
+    }
+  });
+}
+function doughnutChart(id, labels, values){
+  destroyIf(id);
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  charts[id] = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data: values, backgroundColor: PALETTE }]},
+    options:{ plugins:{ legend:{ position:'bottom', labels:{boxWidth:10, font:{size:10}} } } }
+  });
+}
+
+function renderCharts(data){
+  const n = data.length;
+
+  // Faixas etárias agregadas (soma de todos os domicílios)
+  const faixaLabels = ['0-11','12-17','18-29','30-59','60+'];
+  const faixaKeys = ['f0_11','f12_17','f18_29','f30_59','f60mais'];
+  const faixaValues = faixaKeys.map(k => data.reduce((s,r)=> s + ((r.faixas && r.faixas[k]) || 0), 0));
+  barChart('chAge', faixaLabels, faixaValues);
+
+  // Satisfação média por aspecto + matriz Importância x Desempenho
+  const perf = {};
+  ASPECTS.forEach(a=>{ perf[a.key] = data.reduce((s,r)=> s + ((r.satisfacao && r.satisfacao[a.key]) || 0), 0) / n; });
+  barChart('chSat', ASPECTS.map(a=>a.label), ASPECTS.map(a=>perf[a.key].toFixed(2)), true);
+
+  const impCount = countMulti(data, 'importancia');
+  destroyIf('chImportancia');
+  const ctxImp = document.getElementById('chImportancia');
+  if(ctxImp){
+    const points = ASPECTS.map(a=>({
+      x: Math.round(((impCount[a.label]||0)/n)*100),
+      y: Number(perf[a.key].toFixed(2)),
+      label: a.label
+    }));
+    charts['chImportancia'] = new Chart(ctxImp, {
+      type:'scatter',
+      data:{ datasets:[{ data: points, backgroundColor: '#6E2A38', pointRadius:6 }]},
+      options:{
+        plugins:{ legend:{display:false},
+          tooltip:{ callbacks:{ label:(c)=> `${c.raw.label}: importância ${c.raw.x}% · nota ${c.raw.y}` } } },
+        scales:{
+          x:{ title:{display:true,text:'% que marcou como importante', font:{size:10}}, min:0, max:100 },
+          y:{ title:{display:true,text:'Nota média (1-5)', font:{size:10}}, min:1, max:5 }
+        }
+      }
+    });
+  }
+
+  // Maior desafio de convivência
+  const desafioMap = countBy(data, 'desafioConvivencia');
+  doughnutChart('chDesafio', Object.keys(desafioMap), Object.values(desafioMap));
+
+  // NPS distribution
+  destroyIf('chNPS');
+  const ctxNps = document.getElementById('chNPS');
+  if(ctxNps){
+    const detratores = data.filter(r=>r.nps<=6).length;
+    const neutros = data.filter(r=>r.nps>=7 && r.nps<=8).length;
+    const promotores = data.filter(r=>r.nps>=9).length;
+    charts['chNPS'] = new Chart(ctxNps, {
+      type:'doughnut',
+      data:{ labels:['Detratores (0-6)','Neutros (7-8)','Promotores (9-10)'], datasets:[{ data:[detratores,neutros,promotores], backgroundColor:['#8F4250','#B98A34','#7C8B6A'] }]},
+      options:{ plugins:{ legend:{ position:'bottom', labels:{boxWidth:10, font:{size:9}} } } }
+    });
+  }
+
+  const servMap = countMulti(data, 'novosServicos');
+  const servSorted = Object.entries(servMap).sort((a,b)=>b[1]-a[1]);
+  barChart('chServicos', servSorted.map(x=>x[0]), servSorted.map(x=>x[1]), true);
+
+  const idMap = countMulti(data, 'identidade');
+  const idSorted = Object.entries(idMap).sort((a,b)=>b[1]-a[1]);
+  barChart('chIdentidade', idSorted.map(x=>x[0]), idSorted.map(x=>x[1]), true);
+
+  const transpMap = countMulti(data, 'transportes');
+  barChart('chTransp', Object.keys(transpMap), Object.values(transpMap));
+
+  const areasMap = countMulti(data, 'areasUsadas');
+  barChart('chAreas', Object.keys(areasMap), Object.values(areasMap));
+}
+
+function renderSuggestions(data){
+  const withText = data.filter(r=>(r.valorizaMais && r.valorizaMais.length>0) || (r.melhoriaUnica && r.melhoriaUnica.length>0)).sort((a,b)=>b.ts-a.ts).slice(0,12);
+  const tbl = $('#suggestTable');
+  if(withText.length===0){ tbl.innerHTML = '<tr><td style="color:var(--muted)">Nenhuma resposta aberta registrada ainda.</td></tr>'; return; }
+  tbl.innerHTML = `<tr style="font-weight:700;color:var(--green-soft);"><td>Quadra/Lote</td><td>Valoriza hoje</td><td>Melhoria única pedida</td></tr>` +
+    withText.map(r=>`<tr><td class="fase">${r.quadra||'-'}${r.lote?('/'+r.lote):''}</td><td>${escapeHtml(r.valorizaMais||'—')}</td><td>${escapeHtml(r.melhoriaUnica||'—')}</td></tr>`).join('');
+}
+
+function escapeHtml(s){
+  const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+}
+
+function exportCSV(){
+  const quadra = $('#quadraFilter').value;
+  const data = quadra ? allResponses.filter(r=>r.quadra===quadra) : allResponses;
+  if(data.length===0) return;
+  const arrayFields = ['pets','transportes','areasUsadas','importancia','segurancaMelhorias','novosServicos','identidade'];
+  const flat = data.map(r=>{
+    const o = {...r};
+    if(o.faixas){ Object.entries(o.faixas).forEach(([k,v])=>{ o['faixa_'+k]=v; }); delete o.faixas; }
+    if(o.satisfacao){ Object.entries(o.satisfacao).forEach(([k,v])=>{ o['sat_'+k]=v; }); delete o.satisfacao; }
+    arrayFields.forEach(f=>{ if(Array.isArray(o[f])) o[f] = o[f].join('; '); });
+    return o;
+  });
+  const cols = Object.keys(flat[0]);
+  const rows = flat.map(r=> cols.map(c=>{
+    let v = r[c];
+    v = String(v??'').replace(/"/g,'""');
+    return `"${v}"`;
+  }).join(','));
+  const csv = [cols.join(','), ...rows].join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'censo_buona_vita_' + Date.now() + '.csv';
+  a.click();
+}
+
+/* ============================= INIT ============================= */
+loadPublicProgress();
+
+</script>
+</body>
+</html>
