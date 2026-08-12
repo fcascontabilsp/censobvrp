@@ -8,6 +8,7 @@ Página estática do **Censo Residencial Buona Vita 2026**, com acompanhamento p
 |---|---|
 | `index.html` | Aplicação completa em HTML, CSS e JavaScript |
 | `.nojekyll` | Publicação direta no GitHub Pages sem processamento do Jekyll |
+| `VALIDATION.md` | Auditoria comparativa, testes do Make e registro da publicação |
 
 ## Integrações utilizadas
 
@@ -15,7 +16,9 @@ A página envia respostas para um webhook do Make e consulta uma planilha do Goo
 
 ## Publicação
 
-O site está disponível em **[https://fcascontabilsp.github.io/censobvrp/](https://fcascontabilsp.github.io/censobvrp/)** e é publicado pelo GitHub Pages a partir da raiz da branch `main`.
+O site é publicado pelo GitHub Pages a partir da raiz da branch `main`. O domínio configurado é **[http://www.buonavitaribeirao.com.br/](http://www.buonavitaribeirao.com.br/)**; a URL padrão **[fcascontabilsp.github.io/censobvrp](https://fcascontabilsp.github.io/censobvrp/)** redireciona para ele.
+
+A revisão mais recente está documentada em **[VALIDATION.md](VALIDATION.md)**. O conteúdo já está online, mas o certificado HTTPS do domínio personalizado ainda depende de reprovisionamento no GitHub Pages.
 
 ## Observação de segurança
 
