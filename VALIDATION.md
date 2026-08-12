@@ -38,10 +38,19 @@ A atualização final preservou o formulário, o webhook e o mapeamento do cená
 | Encerramento da campanha | Não definido | `31/08/2026` | A tela pública exibe os dias restantes |
 | Leitura da planilha | Endpoint `gviz/tq` da planilha | CSV de **Publicar na Web** | Evita o bloqueio de CORS observado no navegador |
 | Cache de leitura | Tentativa de consulta ao vivo | Cache do Google de alguns minutos | Uma resposta nova pode demorar alguns minutos para aparecer nos painéis |
-| “A voz do morador” | Classe `dir-only` | Disponível também no perfil de respondentes | Respostas textuais deixam de ser exclusivas da diretoria após o acesso ao perfil |
+| “A voz do morador” | Classe `dir-only` | Mantida exclusivamente no painel da diretoria | O perfil de respondente não exibe respostas textuais |
 | Envio ao Make | Webhook e payload existentes | Inalterados | Compatibilidade preservada |
 
-> **Observação de privacidade:** a remoção de `dir-only` do painel “A voz do morador” foi mantida por fazer parte do arquivo atualizado recebido. Esse conteúdo não aparece na tela pública de participação, mas passa a aparecer no perfil acessado pelo código geral de respondentes.
+> **Privacidade confirmada:** o painel “A voz do morador” está marcado como `dir-only`. Ele não aparece na tela pública nem no perfil acessado pelo código geral de respondentes; permanece disponível somente quando o modo diretoria é autenticado.
+
+### Teste de separação de acesso
+
+A correção foi exercitada com uma resposta funcional mantida apenas como fixture local. No perfil de respondente, os seis elementos `dir-only` ficaram ocultos e “A voz do morador” apresentou `display: none`. No painel da diretoria, os seis elementos exclusivos ficaram visíveis e o mesmo painel apresentou `display: block`. Nenhuma chamada ao webhook do Make foi realizada durante esse teste.
+
+| Perfil testado | Classe `director-mode` | “A voz do morador” | Elementos `dir-only` visíveis | Resultado |
+|---|---:|---:|---:|---|
+| Respondente | Não | Oculta | 0 de 6 | Aprovado |
+| Diretoria | Sim | Visível | 6 de 6 | Aprovado |
 
 ## Auditoria da integração com Make
 
