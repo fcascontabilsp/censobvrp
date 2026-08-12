@@ -6,11 +6,12 @@
 | Data da validação | 12 de agosto de 2026 |
 | Responsável técnico | Manus AI |
 | Commit anterior | `2881cf585ab97a793b01a8c3c7743e0edcd1fa22` |
-| Commit publicado | `61a0fdf680517381d62d1e6f4ff6b7b03d9c09a7` |
+| Commit-base da versão revisada | `61a0fdf680517381d62d1e6f4ff6b7b03d9c09a7` |
+| Commit da correção de privacidade | `cd4c32d2c268b177e2ec30afda5cb9dd22d26584` |
 
 ## Resultado executivo
 
-A nova versão foi comparada com a versão publicada anteriormente, corrigida, testada em navegador e enviada à branch `main`. O HTML servido pelo GitHub Pages possui SHA-256 `023bac0a99a43177f27831e4283bb6fdfc7e94213bcbdd57a09f438af4a7e258`, exatamente igual ao arquivo `index.html` do commit publicado.
+A nova versão foi comparada com a versão publicada anteriormente, corrigida, testada em navegador e enviada à branch `main`. Após a correção de privacidade, o HTML servido pelo GitHub Pages possui SHA-256 `7083bdb4b8f6316224a731553875828fa87c6fab55e6d867f4ca95cf345e5ee3`, exatamente igual ao arquivo `index.html` do commit validado.
 
 O contrato de envio para o Make foi preservado: o endpoint, o método `POST`, o formato JSON e os 43 caminhos consumidos pelo cenário continuam compatíveis. Nenhuma resposta de teste foi gravada, pois todas as chamadas ao webhook foram interceptadas antes da rede.
 
@@ -51,6 +52,8 @@ A correção foi exercitada com uma resposta funcional mantida apenas como fixtu
 |---|---:|---:|---:|---|
 | Respondente | Não | Oculta | 0 de 6 | Aprovado |
 | Diretoria | Sim | Visível | 6 de 6 | Aprovado |
+
+A mesma regra foi confirmada após a publicação: a busca no perfil online de respondente não encontrou “A voz do morador”, enquanto o painel online da diretoria carregou exatamente uma ocorrência da seção e sua tabela. O conteúdo servido correspondeu integralmente ao arquivo local pelo SHA-256 acima.
 
 ## Auditoria da integração com Make
 
